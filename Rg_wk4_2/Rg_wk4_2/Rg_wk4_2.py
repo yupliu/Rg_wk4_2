@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-sales = graphlab.SFrame('C:\\Machine_Learning\\Rg_wk4_2\\kc_house_data.gl')
+#sales = graphlab.SFrame('C:\\Machine_Learning\\Rg_wk4_2\\kc_house_data.gl')
+sales = graphlab.SFrame('D:\\ML_Learning\\UW_Regression\\Week4\\kc_house_data.gl')
 
 
 #return 1+h0(xi)+h1(xi)+...., and output
@@ -87,7 +88,7 @@ def ridge_regression_gradient_descent(feature_matrix, output, initial_weights, s
                 derivative = feature_derivative_ridge(errors,feature_matrix[:,i],weights[i],l2_penalty,False)
             
             #weights[i] = (1-2*step_size*l2_penalty)*weights[i] - step_size * derivative
-            weights = weights-step_size*derivative
+            weights[i] = weights[i]-step_size*derivative
             #print weights[i]
             # compute the square-root of the gradient sum of squares to get the gradient magnitude:            
             if iteration > max_iterations:
@@ -113,3 +114,41 @@ plt.plot(simple_feature_matrix,output,'k.',
          simple_feature_matrix,predict_output(simple_feature_matrix, simple_weights_0_penalty),'b-',
         simple_feature_matrix,predict_output(simple_feature_matrix, simple_weights_high_penalty),'r-')
 plt.show()
+
+pred = np.dot(simple_test_feature_matrix,simple_weights_high_penalty)
+test_err = pred - test_output
+test_rss = test_err * test_err
+test_rss = test_rss.sum()
+print "Single feature rss=",test_rss
+
+model_features = ['sqft_living', 'sqft_living15'] # sqft_living15 is the average squarefeet for the nearest 15 neighbors. 
+my_output = 'price'
+(feature_matrix, output) = get_numpy_data(train_data, model_features, my_output)
+(test_feature_matrix, test_output) = get_numpy_data(test_data, model_features, my_output)
+
+initial_weights = np.array([0.0,0.0,0.0])
+step_size = 1e-12
+max_iterations = 1000
+l2_penalty = 0.0
+multiple_weights_0_penalty = ridge_regression_gradient_descent(feature_matrix,output,initial_weights,step_size,l2_penalty,max_iterations)
+
+l2_penalty = 1e11
+initial_weights = np.array([0.0,0.0,0.0])
+multiple_weights_high_penalty = ridge_regression_gradient_descent(feature_matrix,output,initial_weights,step_size,l2_penalty,max_iterations)
+
+
+pred = np.dot(test_feature_matrix,multiple_weights_0_penalty)
+test_err = pred - test_output
+test_rss = test_err * test_err
+test_rss = test_rss.sum()
+print "Multiple feature rss=",test_rss
+
+#no regularization
+pred = np.dot(test_feature_matrix[0,:],multiple_weights_0_penalty)
+test_err = pred - test_output[0]
+print test_err
+
+#high regularization
+pred = np.dot(test_feature_matrix[0,:],multiple_weights_high_penalty)
+test_err = pred - test_output[0]
+print test_err
